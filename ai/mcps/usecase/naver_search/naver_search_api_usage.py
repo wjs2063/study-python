@@ -14,8 +14,7 @@ ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 truststore.inject_into_ssl()
 load_dotenv()
 client_id = os.getenv('NAVER_CLIENT_ID')
-client_secret = os.getenv('NAVER_CLIENT_SECRET')
-
+client_secret = os.getenv('NAVER_SECRET_KEY')
 
 # encText = urllib.parse.quote("최신 뉴스")
 # url = "https://openapi.naver.com/v1/search/news.json?query=" + encText  # JSON 결과
@@ -54,12 +53,31 @@ async def get_naver_search(query: str, display: int, start: int, sort: Literal["
             print(response)
             return response
 
-    return []
+
+async def get_naver_local_search(query: str, display: int, start: int, sort: Literal["random","comment"]) -> dict:
+    """
+    params query: 사용자의 질문으로부터 추출해낸 지역 검색 쿼리
+    params display: 한번에 표시할 검색 결과 개수(기본 1,최대 5)
+    params start: 검색 시작 위치(기본1, 최대 1)
+    params sort: 검색 결과 정렬 방법(random : 정확도순으로 내림차순 정렬, comment : 업체 및 기관에 대한 카페,블로그 리뷰 개수순 내림차순 정렬)
+    """
+    async with ClientSession(
+            connector=TCPConnector(ssl=ssl_ctx),
+            headers={"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret}) as session:
+        async with session.get(url="https://openapi.naver.com/v1/search/local.json",
+                               params={"query": query, "display": display, "start": start, "sort": sort}) as response:
+
+            response = await response.json()
+            return response
+
 
 
 async def main():
     print(await get_naver_search(query="최신 뉴스", display=10, start=1, sort="date"))
 
+async def main2():
+    print(await get_naver_local_search(query="삼성역 맛집",display=5, start=1, sort="comment"))
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+    asyncio.run(main2())
