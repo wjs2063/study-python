@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-test
+spec:
+  containers:
+    - name: my-test
+      image: ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      command: ["echo"] # EntryPoint
+      args : ["Hello, Kubernetes"] # CMD
+#      ports:
+#        - name:
+#          containerPort: 80
+#          protocol: TCP
+#  restartPolicy: Always
+  
