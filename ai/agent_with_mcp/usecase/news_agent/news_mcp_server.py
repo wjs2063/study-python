@@ -37,13 +37,10 @@ async def get_news(search_keyword: str, categories: list[str],days_ago:int = -14
     res = conn.getresponse()
     datas = res.read()
     datas = json.loads(datas.decode('utf-8'))
-    for data in datas["data"]:
-        print(data)
     results = []
     results.extend(
         [{"title": data["title"], "description": data["description"], "published_at": data["published_at"]} for data in
          datas["data"]])
-    print(results)
     return results
 
 
