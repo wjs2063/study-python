@@ -36,7 +36,7 @@ mcp = FastMCP(name="naver-search-mcp-server", host="0.0.0.0", port=8080)
 
 
 @mcp.tool()
-async def get_naver_search(query: str, display: int, start: int, sort: Literal["sim", "date"] = "date") -> dict:
+async def get_naver_news(query: str, display: int, start: int, sort: Literal["sim", "date"] = "date") -> dict:
     """
     Search Naver News and return the raw JSON response.
 
@@ -62,7 +62,7 @@ async def get_naver_search(query: str, display: int, start: int, sort: Literal["
 
 
 @mcp.tool()
-async def get_naver_local_search(query: str, display: int, start: int, sort: Literal["random","comment"]) -> dict:
+async def get_naver_poi_search(query: str, display: int, start: int, sort: Literal["random", "comment"]) -> dict:
     """
     Search Naver Local Search and return the raw JSON response.
     POI Data Like 맛집, 장소추천 등
