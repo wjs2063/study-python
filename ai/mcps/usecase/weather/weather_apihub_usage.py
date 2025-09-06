@@ -8,7 +8,7 @@ auth_key = os.getenv("DATA_HUB_KEY")
 base_url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
 response = requests.get(url=base_url,
                         params={"ServiceKey": auth_key, "pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "nx": 55,
-                                "ny": 127,"base_date":"20250903","base_time":"1200"})
+                                "ny": 127,"base_date":"20250904","base_time":"1200"})
 
 print(response.json())
 
