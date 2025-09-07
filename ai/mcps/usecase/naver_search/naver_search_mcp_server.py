@@ -12,6 +12,7 @@ import ssl
 from typing import Literal
 import os
 from dotenv import load_dotenv
+
 ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 
 truststore.inject_into_ssl()
@@ -60,7 +61,6 @@ async def get_naver_news(query: str, display: int, start: int, sort: Literal["si
             return response
 
 
-
 @mcp.tool()
 async def get_naver_poi_search(query: str, display: int, start: int, sort: Literal["random", "comment"]) -> dict:
     """
@@ -81,12 +81,51 @@ async def get_naver_poi_search(query: str, display: int, start: int, sort: Liter
             headers={"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret}) as session:
         async with session.get(url="https://openapi.naver.com/v1/search/local.json",
                                params={"query": query, "display": display, "start": start, "sort": sort}) as response:
-
             response = await response.json()
             return response
 
+
 # async def main():
 #     print(await get_naver_search(query="최신 뉴스", display=10, start=1, sort="date"))
+from bs4 import BeautifulSoup
+from readability import Document
+
+
+async def fetch_news_text(url: str) -> str:
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+    }
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
+        async with session.get(url=url, headers=headers, timeout=15) as response:
+            resp = await response.text()
+
+    # readability로 핵심 본문 추출
+    doc = Document(resp)
+    summary_html = doc.summary(html_partial=True)
+
+    # 본문 텍스트만 뽑기
+    soup = BeautifulSoup(summary_html, "lxml")
+    paragraphs = [p.get_text(" ", strip=True) for p in soup.find_all(["p", "li"]) if p.get_text(strip=True)]
+    text = "\n\n".join(paragraphs)
+    return text.strip()
+
+
+@mcp.tool()
+async def get_news_data(url: str) -> str:
+    """
+    url link로 부터 뉴스 데이터를 읽어옵니다.
+    Args:
+        url: url링크
+
+    Returns:
+        뉴스 데이터
+    """
+    text = await fetch_news_text(url)
+    return text
 
 
 if __name__ == "__main__":
