@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
+    "a2a-sdk>=0.3.4",
     "aiohttp>=3.12.15",
     "aiomisc>=17.8.1",
     "aiosmtplib>=4.0.2",

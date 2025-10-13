@@ -14,6 +14,12 @@ import os
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from readability import Document
+import re
+from urllib.parse import urlparse
+from bs4 import UnicodeDammit
+from aiohttp import ClientSession, TCPConnector
+from bs4 import BeautifulSoup, NavigableString
+from readability import Document
 
 ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 
@@ -67,13 +73,6 @@ async def get_naver_news(query: str, display: int, start: int, sort: Literal["si
             return response
 
 
-import re
-from urllib.parse import urlparse
-
-from aiohttp import ClientSession, TCPConnector
-from bs4 import BeautifulSoup, NavigableString
-from readability import Document
-
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -94,11 +93,13 @@ NAVER_REMOVE_SELECTORS = [
     ".byline_sns", ".origin", ".copyright", ".reporter_area", ".channel_info",
 ]
 
+
 def _clean_text(s: str) -> str:
     s = re.sub(r"\r\n?", "\n", s)
     s = re.sub(r"\n{3,}", "\n\n", s)
     s = re.sub(r"[ \t]{2,}", " ", s)
     return s.strip()
+
 
 def _extract_text_from_container(container: BeautifulSoup) -> str:
     # 불필요한 태그 제거
@@ -120,17 +121,30 @@ def _extract_text_from_container(container: BeautifulSoup) -> str:
         return _clean_text(raw)
     return _clean_text("\n\n".join(blocks))
 
+
 def _is_naver_news(netloc: str) -> bool:
     return any(netloc.endswith(d) for d in ["news.naver.com", "n.news.naver.com", "m.news.naver.com"])
+
 
 async def _fetch_html(url: str) -> str:
     # ssl=False는 되도록 지양(보안/호환). 네이버는 정상 인증서이므로 True가 안전.
     async with ClientSession(headers=HEADERS, connector=TCPConnector(ssl=False)) as session:
         async with session.get(url, timeout=15, allow_redirects=True) as resp:
             resp.raise_for_status()
-            # 인코딩 추론
-            text = await resp.text()
-            return text
+            raw = await resp.read()  # get raw bytes
+            # Try best-effort decoding (uses HTTP headers, meta tags, BOM)
+            dammit = UnicodeDammit(raw, is_html=True)
+            if dammit.unicode_markup:
+                return dammit.unicode_markup
+            # Fallbacks
+            for enc in ("cp949", "euc-kr", "utf-8", "utf-8-sig"):
+                try:
+                    return raw.decode(enc)
+                except Exception:
+                    continue
+            # Last resort: replace errors
+            return raw.decode("utf-8", errors="replace")
+
 
 async def fetch_news_text(url: str) -> str:
     html = await _fetch_html(url)
@@ -145,11 +159,11 @@ async def fetch_news_text(url: str) -> str:
         # - 신형: #newsct_article, #dic_area
         # - 구형: #articleBodyContents, #articeBody(오타 케이스도 있어서 여분 포함)
         container = (
-            soup.select_one("#newsct_article")
-            or soup.select_one("#dic_area")
-            or soup.select_one("#articleBodyContents")
-            or soup.select_one("#articeBody")
-            or soup.select_one(".newsct_article")
+                soup.select_one("#newsct_article")
+                or soup.select_one("#dic_area")
+                or soup.select_one("#articleBodyContents")
+                or soup.select_one("#articeBody")
+                or soup.select_one(".newsct_article")
         )
 
         if container:
@@ -184,19 +198,20 @@ async def fetch_news_text(url: str) -> str:
     # 최종 폴백: 전체 텍스트
     return _clean_text(soup_full.get_text("\n", strip=True))
 
-@mcp.tool()
-async def get_news_data(url: str) -> str:
-    """
-    url link로 부터 뉴스 본문을 읽어옵니다.
-    Args:
-        url: url링크
 
-    Returns:
-        뉴스 데이터
-    """
-    text = await fetch_news_text(url)
-    print(text)
-    return text
+# @mcp.tool()
+# async def get_news_data(url: str) -> str:
+#     """
+#     url link로 부터 뉴스 본문을 읽어옵니다.
+#     Args:
+#         url: url링크
+#
+#     Returns:
+#         뉴스 데이터
+#     """
+#     text = await fetch_news_text(url)
+#     print(text)
+#     return text
 
 
 if __name__ == "__main__":
