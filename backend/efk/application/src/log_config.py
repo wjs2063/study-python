@@ -43,17 +43,15 @@ LOGGING_CONFIG = {
             "level": "INFO",
             "propagate": False,
         },
-        # uvicorn access (선택)
-        "uvicorn.access": {
-            "handlers": ["stderr"],
-            "level": "INFO",
-            "propagate": False,
+        "uvicorn.error": {     # ✅ Uvicorn 서버 로거
+            "handlers": [],    # 보내지 않음
+            "level": "WARNING",  # INFO 로그 차단
+            "propagate": False
         },
-        # uvicorn internal errors
-        "uvicorn.error": {
-            "handlers": ["stderr"],
-            "level": "INFO",
-            "propagate": False,
+        "uvicorn.access": {    # 접근 로그도 확실히 끄고 싶으면
+            "handlers": [],
+            "level": "WARNING",
+            "propagate": False
         },
     },
     "root": {
