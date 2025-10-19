@@ -1,0 +1,21 @@
+
+networks:
+  logging:
+    driver: bridge
+
+services:
+  fluentd:
+    build:
+      context: ./fluentd         # 위 Dockerfile 위치
+      dockerfile: fluentd/Dockerfile
+    image: fluentd-mongo-plugin
+    container_name: fluentd
+    restart: always
+    command: ["fluentd", "-c", "/fluentd/etc/fluent.conf"]
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro   # 호스트의 conf 마운트
+      - ./fluentd/fluentd-buffer:/fluentd/buffer                    # 버퍼 지속화
+    networks:
+      - logging
+    ports:
+      - "24224:24224"   # 호스트로도 노출(외부/다른 노드에서 수집 시 필요)

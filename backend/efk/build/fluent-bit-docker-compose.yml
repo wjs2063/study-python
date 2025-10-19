@@ -1,0 +1,19 @@
+services:
+  fluent-bit:
+    image: fluent/fluent-bit:latest        # ✔ docker 필터 포함된 공식 이미지
+    container_name: fluent-bit
+    restart: always
+    command: -c /fluent-bit/etc/fluent-bit.conf
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./storage:/var/lib/fluent-bit
+      - ./conf/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./conf/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+
+    networks:
+      - logging
+
+networks:
+  logging:
+    driver: bridge

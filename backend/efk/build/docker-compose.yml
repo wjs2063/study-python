@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      # 🔴 중요: 빌드 컨텍스트는 "프로젝트 루트"
+      context: ../../..     # backend/efk/application/build 기준 3단계 상위 → 루트
+      # Dockerfile은 현재 파일(efk/application/build)에 있는 걸 사용
+      dockerfile: backend/efk/build/Dockerfile
+      args:
+        SRC_DIR: backend/efk/application/src
+    environment:
+      APP_MODULE: ${APP_MODULE:-main:app}
+      HOST: 0.0.0.0
+      PORT: "8000"
+      LOG_LEVEL: info
+      TZ: Asia/Seoul
+    ports:
+      - "8000:8000"
+    labels:
+      app: "efk-fastapi"
+      env: "prod"
+      team: "platform"
+      component: "api"
+      project: "efk-test"
+    # 🔹 Fluentd 드라이버 + 라벨 전달
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "host.docker.internal:24224"  # 맥/윈도우
+        tag: "stack.api.{{.Name}}.{{.ID}}"
+        labels: "app,env"
+        env: "HOST,PORT,LOG_LEVEL"
+        fluentd-async: "true"          # 비동기 전송(권장)
+        # fluentd-verify-connection: "false"  # 수신기 늦게 떠도 컨테이너 먼저 뜨게
