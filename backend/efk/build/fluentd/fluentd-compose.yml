@@ -6,15 +6,15 @@ networks:
 services:
   fluentd:
     build:
-      context: ./fluentd         # 위 Dockerfile 위치
-      dockerfile: fluentd/Dockerfile
-    image: fluentd-mongo-plugin
+      context: .        # 위 Dockerfile 위치
+      dockerfile: Dockerfile
+    image: fluentd-test
     container_name: fluentd
     restart: always
     command: ["fluentd", "-c", "/fluentd/etc/fluent.conf"]
     volumes:
-      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro   # 호스트의 conf 마운트
-      - ./fluentd/fluentd-buffer:/fluentd/buffer                    # 버퍼 지속화
+      - ./fluent.conf:/fluentd/etc/fluent.conf:ro   # 호스트의 conf 마운트
+      - ./fluentd-buffer:/fluentd/buffer                    # 버퍼 지속화
     networks:
       - logging
     ports:

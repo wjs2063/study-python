@@ -1,6 +1,6 @@
 services:
   fluent-bit:
-    image: fluent/fluent-bit:latest        # ✔ docker 필터 포함된 공식 이미지
+    image: fluent-bit-test        # ✔ docker 필터 포함된 공식 이미지
     container_name: fluent-bit
     restart: always
     command: -c /fluent-bit/etc/fluent-bit.conf
