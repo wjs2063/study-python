@@ -16,4 +16,5 @@ services:
 
 networks:
   logging:
+    name : logging
     driver: bridge

@@ -23,13 +23,11 @@ LOGGING_CONFIG = {
         }
     },
     "handlers": {
-        # ✅ 정상 로그는 stdout
         "stdout": {
             "class": "logging.StreamHandler",
-            "stream": "ext://sys.stdout",  # 👈 추가!
+            "stream": "ext://sys.stdout",
             "formatter": "json",
         },
-        # ⚠️ 에러 로그는 stderr (선택적으로 분리)
         "stderr": {
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stderr",
@@ -43,12 +41,12 @@ LOGGING_CONFIG = {
             "level": "INFO",
             "propagate": False,
         },
-        "uvicorn.error": {     # ✅ Uvicorn 서버 로거
-            "handlers": [],    # 보내지 않음
-            "level": "WARNING",  # INFO 로그 차단
+        "uvicorn.error": {
+            "handlers": [],
+            "level": "WARNING",
             "propagate": False
         },
-        "uvicorn.access": {    # 접근 로그도 확실히 끄고 싶으면
+        "uvicorn.access": {
             "handlers": [],
             "level": "WARNING",
             "propagate": False
